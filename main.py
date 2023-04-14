@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-headers={
+headers= {
     'Accept': '*/*',
     'Accept-Language': 'en-US,en;q=0.9',
     'Content-Type': 'application/json',
@@ -14,6 +14,16 @@ headers={
     'User-Agent': 'Wink/1 CFNetwork/1408.0.1 Darwin/22.5.0',
     'Connection': 'keep-alive',
     'Content-Length': '0'
+}
+
+alternative_headers = {
+    'Accept': '*/*',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.9',
+    'Connection': 'keep-alive',
+    'Cookie': os.getenv('COOKIE'), 
+    'Host': 'app-images-alt.winktesting.com',
+    'User-Agent': 'Wink/1 CFNetwork/1408.0.1 Darwin/22.5.0',
 }
 
 def retrieveData():
@@ -30,6 +40,23 @@ def retrieveData():
         print('Data retrieved successfully!')
     else:
         print('Failed to retrieve data!')
+
+def downloadImages():
+    with open('data.json', 'r') as f:
+        data = json.load(f)
+        for user in data:
+            images = user['user_images']
+            for image in images:
+                url = image['image_url']
+                r = requests.get(url, headers=alternative_headers)
+                if r.status_code == 200:
+                    if not os.path.exists('images'):
+                        os.mkdir('images')
+                    with open(f'images/{user["id"]}.jpg', 'wb') as f:
+                        f.write(r.content)
+                        print(f'Downloaded image for {user["id"]}')
+                else:
+                    print(f'Failed to download image for {user["id"]} Status code: {r.status_code}')
 
 def parseIDs():
     with open('data.json', 'r') as f:
@@ -73,7 +100,7 @@ if __name__ == '__main__':
             clear_screen()
             print_ascii()
 
-            print("1. Retrieve data\n2. Parse IDs\n3. Unfriend\n\n0. Exit")
+            print("1. Retrieve data\n2. Parse IDs\n3. Unfriend\n4. Download images\n\n0. Exit")
 
             match input('\nEnter your choice: '):
                 case '1':
@@ -84,6 +111,9 @@ if __name__ == '__main__':
                     break
                 case '3':
                     unfriend(parseIDs())
+                    break
+                case '4':
+                    downloadImages()
                     break
                 case '0':
                     exit()

@@ -1,3 +1,5 @@
 .env
-data.json
 venv
+images
+data.json
+lab.py
